@@ -17,15 +17,7 @@ Functions included in the library
 •	fast_RMS(float x)    fast root mean square function (with fast sqrt function)
 •	rapid_RMS(float x)   rapid root mean square function (approach without sqrt)
 
-Execution speed overview
-Table 1 Comparison of function execution time in terms of cycles on STM32 microcontroller with Cortex M-7 core
-Function	  <math.h>	  “MRB_MATH_LIB.h”
-sinus	      762 cycles	    90 cycles
-cosinus	    762 cycles	    92 cycles
-sqrt	      674 cycles	    28 cycles
-RMS	            -	          694 cycles
-fast RMS	      -	          46 cycles
-rapid RMS	      -	          13 cycles
-FFT	-	
+for more information read documentation
+
 
 Library created by Maciej Brzycki ------ February 2024
