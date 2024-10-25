@@ -824,11 +824,12 @@ float fast_invsqrt(float number) {
     if (number <= 0.0f) return 0;
     x2 = number * 0.5F;
     y = number;
-    i = *(long*)&y;                        // Evil floating-point bit-level hacking
-    i = 0x5f3759df - (i >> 1);             // Treating float number as hex
-    y = *(float*)&i;
+    i = *(long*)&y;                        // Treating float number as hex
+    i = 0x5f3759df - (i >> 1);             // Mantysa hack - emulating the ^(-1/2) operation
+    y = *(float*)&i;                       // Back to float coding
+    int j = 0;
     // Additional iterations for better accuracy
-    for (int j = 0; j < SQRT_ACCURACY; ++j) { // Adjust the number of iterations as needed
+    for (j = 0; j < SQRT_ACCURACY; ++j) { // Adjust the number of iterations as needed
         y = y * (threehalfs - (x2 * y * y)); // Newton's iteration
     }
     // Additional iterations can be added here for better accuracy
@@ -848,25 +849,25 @@ float RMS(float signal_actual, unsigned int RMS_handler)
     float rms;
     float signal_x2;
     float const static ONE_BY_BUFFERSIZE = 1.0f / BUFFER_SIZE;
-    static float signal_integral = 0;
-    static unsigned int buffr_pointr = 0;
+    static float signal_integral[RMS_HANDLERS];
+    static unsigned int buffr_pointr[RMS_HANDLERS];
     static float rms_buffer[RMS_HANDLERS][BUFFER_SIZE];
     signal_x2 = signal_actual * signal_actual;
-    static unsigned short int buffer_overflow = 0;
-    if (buffer_overflow)
+    static unsigned short int buffer_overflow[RMS_HANDLERS];
+    if (buffer_overflow[0])
     {
-        signal_integral = signal_integral - rms_buffer[RMS_handler][buffr_pointr];
+        signal_integral[RMS_handler] = signal_integral[RMS_handler] - rms_buffer[RMS_handler][buffr_pointr[RMS_handler]];
     }
-    rms_buffer[RMS_handler][buffr_pointr] = signal_x2;
-    signal_integral = signal_integral + rms_buffer[RMS_handler][buffr_pointr];
-    buffr_pointr++;
-    if (buffr_pointr == BUFFER_SIZE)
+    rms_buffer[RMS_handler][buffr_pointr[RMS_handler]] = signal_x2;
+    signal_integral[RMS_handler] = signal_integral[RMS_handler] + rms_buffer[RMS_handler][buffr_pointr[RMS_handler]];
+    buffr_pointr[RMS_handler]++;
+    if (buffr_pointr[RMS_handler] == BUFFER_SIZE)
     {
-        buffr_pointr = 0;
-        buffer_overflow = 1;
+        buffr_pointr[RMS_handler] = 0;
+        buffer_overflow[RMS_handler] = 1;
     }
 
-    rms = sqrt(ONE_BY_BUFFERSIZE * signal_integral);
+    rms = sqrt(ONE_BY_BUFFERSIZE * signal_integral[RMS_handler]);
     return rms;
 }
 
@@ -876,24 +877,24 @@ float fast_RMS(float signal_actual, unsigned int RMS_handler)
     float rms;
     float signal_x2;
     float const static ONE_BY_BUFFERSIZE = 1.0f / BUFFER_SIZE;
-    static float signal_integral = 0;
-    static unsigned int buffr_pointr = 0;
+    static float signal_integral[RMS_HANDLERS];
+    static unsigned int buffr_pointr[RMS_HANDLERS];
     static float rms_buffer[RMS_HANDLERS][BUFFER_SIZE];
     signal_x2 = signal_actual * signal_actual;
-    static unsigned short int buffer_overflow = 0;
-    if (buffer_overflow)
+    static unsigned short int buffer_overflow[RMS_HANDLERS];
+    if (buffer_overflow[RMS_handler])
     {
-        signal_integral = signal_integral - rms_buffer[RMS_handler][buffr_pointr];
+        signal_integral[RMS_handler] = signal_integral[RMS_handler] - rms_buffer[RMS_handler][buffr_pointr[RMS_handler]];
     }
-    rms_buffer[RMS_handler][buffr_pointr] = signal_x2;
-    signal_integral = signal_integral + rms_buffer[RMS_handler][buffr_pointr];
-    buffr_pointr++;
-    if (buffr_pointr == BUFFER_SIZE)
+    rms_buffer[RMS_handler][buffr_pointr[RMS_handler]] = signal_x2;
+    signal_integral[RMS_handler] = signal_integral[RMS_handler] + rms_buffer[RMS_handler][buffr_pointr[RMS_handler]];
+    buffr_pointr[RMS_handler]++;
+    if (buffr_pointr[RMS_handler] == BUFFER_SIZE)
     {
-        buffr_pointr = 0;
-        buffer_overflow = 1;
+        buffr_pointr[RMS_handler] = 0;
+        buffer_overflow[RMS_handler] = 1;
     }
-    rms = fast_sqrt(ONE_BY_BUFFERSIZE * signal_integral);
+    rms = fast_sqrt(ONE_BY_BUFFERSIZE * signal_integral[RMS_handler]);
     return rms;
 }
 
@@ -901,28 +902,28 @@ float fast_RMS(float signal_actual, unsigned int RMS_handler)
 float rapid_RMS(float signal_actual, unsigned int RMS_handler)
 {
     float signal_fabs;
-    float static signal_integral;
-    static unsigned int buffr_pointr = 0;
+    float static signal_integral[RMS_HANDLERS];
+    static int buffr_pointr[RMS_HANDLERS];
     float const static ONE_BY_BUFFERSIZE = 1.0f / BUFFER_SIZE;
     static float rms_buffer[RMS_HANDLERS][BUFFER_SIZE];
     if (signal_actual >= 0) signal_fabs = signal_actual * ONE_BY_BUFFERSIZE;
     else signal_fabs = -signal_actual * ONE_BY_BUFFERSIZE;
-    static unsigned short int buffer_overflow = 0;
-    if (buffer_overflow)
+    static unsigned short int buffer_overflow[RMS_HANDLERS];
+    if (buffer_overflow[RMS_handler])
     {
-        signal_integral = signal_integral - rms_buffer[RMS_handler][buffr_pointr];
+        signal_integral[RMS_handler] = signal_integral[RMS_handler] - rms_buffer[RMS_handler][buffr_pointr[RMS_handler]];
     }
-    rms_buffer[RMS_handler][buffr_pointr] = signal_fabs;
-    signal_integral = signal_integral + rms_buffer[RMS_handler][buffr_pointr];
-    buffr_pointr++;
+    rms_buffer[RMS_handler][buffr_pointr[RMS_handler]] = signal_fabs;
+    signal_integral[RMS_handler] = signal_integral[RMS_handler] + rms_buffer[RMS_handler][buffr_pointr[RMS_handler]];
+    buffr_pointr[RMS_handler]++;
     if (buffr_pointr == BUFFER_SIZE)
     {
-        buffr_pointr = 0;
-        buffer_overflow = 1;
+        buffr_pointr[RMS_handler] = 0;
+        buffer_overflow[RMS_handler] = 1;
     }
 
 
-    return signal_integral * FAST_RMS_COEF;
+    return signal_integral[RMS_handler] * FAST_RMS_COEF;
 
 }
 

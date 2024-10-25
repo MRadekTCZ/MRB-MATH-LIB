@@ -20,16 +20,19 @@
 #define BASE_FREQ 50
 #define BUFFER_SIZE 200 // (MEASURING_FREQUENCY / BASE_FREQ)
 #define RMS_HANDLERS 6
-//BUffer size has be counted manually before compilation, so there will be no need of using malloc()
+//Buffer size has be counted manually before compilation, so there will be no need of using malloc()
 
 // ***********SQRT******************************************//
 // fast qrt accuracy is directly connected with number of cycles needed to count it
-// increasing sqrt_accuracy by one effects increasing execution time of fast_sqrt by one cycle
-#define SQRT_ACCURACY 5
+// increasing sqrt_accuracy by one effects linearly increasing execution time of fast_sqrt
+#define SQRT_ACCURACY 2
 
 // ***********SIN and COS***********************************//
 //You can define lenght of look up table (in kB). The bigger the look up table, the more accurate sin_f and cos_f function are
 #define LUTSIZE 1 //4*kB
+
+
+
 
 
 //*******don't change anything from here*************************//

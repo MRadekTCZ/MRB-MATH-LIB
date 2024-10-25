@@ -9,7 +9,7 @@
 uint64_t get_clock_cycles() {
     return __rdtsc(); // This is for Intel/AMD CPUs on Windows or compatible environments
 }
-void compare_sines(double step) {
+void compare_sin(double step) {
     printf("   x        |   sin(x)   |  sin_f(x)  | Difference \n");
     printf("-------------------------------------------------\n");
 
@@ -106,6 +106,19 @@ void compare_sqrt() {
         // Write to CSV file
         fprintf(file, "%10.6f,%10.6f,%14.6f,%10.6f\n", x, sqrt_math, sqrt_fast, difference);
     }
+    for (int i = 0; i < number_of_tests; i++) {
+        x = values[i]* 19500.397;
+
+        sqrt_math = sqrt(x);
+        sqrt_fast = fast_sqrt(x);
+        difference = fabs(sqrt_math - sqrt_fast);
+
+        // Print to console
+        printf("%10.6f | %10.6f | %14.6f | %10.6f\n", x, sqrt_math, sqrt_fast, difference);
+
+        // Write to CSV file
+        fprintf(file, "%10.6f,%10.6f,%14.6f,%10.6f\n", x, sqrt_math, sqrt_fast, difference);
+    }
 
     // Close the file
     fclose(file);
@@ -114,44 +127,61 @@ void compare_sqrt() {
 void generate_sine(float* array, int number_of_samples, float amplitude) {
     for (int i = 0; i < number_of_samples; i++) {
         float theta = (2.0 * PI * i) / number_of_samples;  // Calculate theta
-        array[i] = amplitude * sin(theta);
+        array[i] = amplitude * cos(theta);
         // array[i] = 1; // This line seems incorrect as it overwrites the calculated sine value
     }
 }
 
 void compare_RMS(float* array, int number_of_samples) {
     float rms_normal, rms_fast, rms_rapid;
+    float current[3], voltage[3];
+    float ADC1[200], ADC2[200], ADC3[200], ADC4[200], ADC5[200], ADC6[200];
 
     printf("   RMS    |  fast_RMS  |  rapid_RMS  | Difference \n");
     printf("----------------------------------------------------\n");
 
     for (int i = 0; i < number_of_samples; i++) {
-        rms_normal = RMS(array[i]);
-        rms_fast = fast_RMS(array[i]);
-        rms_rapid = rapid_RMS(array[i]);
+        ADC1[i] = array[i];
+        ADC2[i] = array[i];
+        ADC3[i] = array[i];
+        ADC4[i] = array[i];
+        ADC5[i] = array[i];
+        ADC6[i] = array[i];
+        #define current_A 0
+        #define current_B 1
+        #define current_C 2
+        #define voltage_A 3
+        #define voltage_B 4
+        #define voltage_C 5
+        current[0] = rapid_RMS(ADC1[i], current_A);
+        current[1] = rapid_RMS(ADC2[i], current_B);
+        current[2] = rapid_RMS(ADC3[i], current_C);
+        voltage[0] = rapid_RMS(ADC4[i], voltage_A);
+        voltage[1] = rapid_RMS(ADC5[i], voltage_B);
+        voltage[2] = rapid_RMS(ADC6[i], voltage_C);
 
         // Printing results for each value
-        printf("  %8.6f | %8.6f | %8.6f  | %8.6f\n", rms_normal, rms_fast, rms_rapid, fabs(rms_normal - rms_fast));
+        printf("  %10.9f | %10.9f | %10.9f  | %10.9f\n", current[0], current[1], current[2], voltage[0]);
     }
 }
 
 int main() {
 
-    double step = 0.001572*0.01; // Set the step for x variables
+    double step = 0.00001; // Set the step for x variables
 
     int number_of_samples = 200;
     float amplitude = 330.0;          // Amplitude of the sine wave
     float sine_array[200];            // Array to hold sine values
-    compare_sines(step);
+    //compare_sin(step);
     //compare_sqrt();
-    //generate_sine(sine_array, number_of_samples, amplitude);
+    generate_sine(sine_array, number_of_samples, amplitude);
 
     //printf("Array of sine wave values:\n");
     //for (int i = 0; i < number_of_samples; i++) {
     //    printf("sine_array[%d] = %8.6f\n", i, sine_array[i]);
     //}
 
-    //compare_RMS(sine_array, number_of_samples);
+    compare_RMS(sine_array, number_of_samples);
 
 
     return 0;
