@@ -19,7 +19,7 @@
 #define MEASURING_FREQUENCY 10000
 #define BASE_FREQ 50
 #define BUFFER_SIZE 200 // (MEASURING_FREQUENCY / BASE_FREQ)
-#define ONE_BY_BUFFERSIZE 0.005f // (1 / BUFFER_SIZE)
+#define RMS_HANDLERS 6
 //BUffer size has be counted manually before compilation, so there will be no need of using malloc()
 
 // ***********SQRT******************************************//
@@ -71,9 +71,9 @@ float fast_invsqrt(float number);
 float fast_sqrt(float number);
 
 
-float RMS(float signal_actual);
-float fast_RMS(float signal_actual);
-float rapid_RMS(float signal_actual);
+float RMS(float signal_actual, unsigned int RMS_handler);
+float fast_RMS(float signal_actual, unsigned int RMS_handler);
+float rapid_RMS(float signal_actual, unsigned int RMS_handler);
 
 
 #endif /* INC_MRB_TRIGONOMETRIC_LIB_H_ */

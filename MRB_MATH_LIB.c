@@ -843,66 +843,83 @@ float fast_sqrt(float number) {
 }
 
 //Normal RMS with sqrt from math.h
-float RMS(float signal_actual)
+float RMS(float signal_actual, unsigned int RMS_handler)
 {
     float rms;
     float signal_x2;
-    float signal_integral;
-    static float rms_buffer[BUFFER_SIZE];
+    float const static ONE_BY_BUFFERSIZE = 1.0f / BUFFER_SIZE;
+    static float signal_integral = 0;
+    static unsigned int buffr_pointr = 0;
+    static float rms_buffer[RMS_HANDLERS][BUFFER_SIZE];
     signal_x2 = signal_actual * signal_actual;
-    signal_integral = 0;
-    int i = 0;
-    for (i = 0; i < BUFFER_SIZE - 1; i++)
+    static unsigned short int buffer_overflow = 0;
+    if (buffer_overflow)
     {
-        rms_buffer[i] = rms_buffer[i + 1];
-        signal_integral = signal_integral + rms_buffer[i];
+        signal_integral = signal_integral - rms_buffer[RMS_handler][buffr_pointr];
     }
-    rms_buffer[BUFFER_SIZE - 1] = signal_x2;
-    signal_integral = signal_integral + signal_x2;
+    rms_buffer[RMS_handler][buffr_pointr] = signal_x2;
+    signal_integral = signal_integral + rms_buffer[RMS_handler][buffr_pointr];
+    buffr_pointr++;
+    if (buffr_pointr == BUFFER_SIZE)
+    {
+        buffr_pointr = 0;
+        buffer_overflow = 1;
+    }
+
     rms = sqrt(ONE_BY_BUFFERSIZE * signal_integral);
-    //return rms;
     return rms;
 }
 
 //Faster RMS with quake sqrt
-float fast_RMS(float signal_actual)
+float fast_RMS(float signal_actual, unsigned int RMS_handler)
 {
     float rms;
     float signal_x2;
-    float signal_integral;
-    static float rms_buffer[BUFFER_SIZE];
+    float const static ONE_BY_BUFFERSIZE = 1.0f / BUFFER_SIZE;
+    static float signal_integral = 0;
+    static unsigned int buffr_pointr = 0;
+    static float rms_buffer[RMS_HANDLERS][BUFFER_SIZE];
     signal_x2 = signal_actual * signal_actual;
-    signal_integral = 0;
-    int i = 0;
-    for (i = 0; i < BUFFER_SIZE - 1; i++)
+    static unsigned short int buffer_overflow = 0;
+    if (buffer_overflow)
     {
-        rms_buffer[i] = rms_buffer[i + 1];
-        signal_integral = signal_integral + rms_buffer[i];
+        signal_integral = signal_integral - rms_buffer[RMS_handler][buffr_pointr];
     }
-    rms_buffer[BUFFER_SIZE - 1] = signal_x2;
-    signal_integral = signal_integral + signal_x2;
+    rms_buffer[RMS_handler][buffr_pointr] = signal_x2;
+    signal_integral = signal_integral + rms_buffer[RMS_handler][buffr_pointr];
+    buffr_pointr++;
+    if (buffr_pointr == BUFFER_SIZE)
+    {
+        buffr_pointr = 0;
+        buffer_overflow = 1;
+    }
     rms = fast_sqrt(ONE_BY_BUFFERSIZE * signal_integral);
-    //return rms;
     return rms;
 }
 
 //Rapid RMS without any dividing and sqrt, but accurate only for sinusoidals signals (the more ideal the signal, the more accurate rapid_RMS is)
-float rapid_RMS(float signal_actual)
+float rapid_RMS(float signal_actual, unsigned int RMS_handler)
 {
     float signal_fabs;
-    float signal_integral;
-    static float rms_buffer[BUFFER_SIZE];
+    float static signal_integral;
+    static unsigned int buffr_pointr = 0;
+    float const static ONE_BY_BUFFERSIZE = 1.0f / BUFFER_SIZE;
+    static float rms_buffer[RMS_HANDLERS][BUFFER_SIZE];
     if (signal_actual >= 0) signal_fabs = signal_actual * ONE_BY_BUFFERSIZE;
     else signal_fabs = -signal_actual * ONE_BY_BUFFERSIZE;
-    signal_integral = 0;
-    int i = 0;
-    for (i = 0; i < BUFFER_SIZE - 1; i++)
+    static unsigned short int buffer_overflow = 0;
+    if (buffer_overflow)
     {
-        rms_buffer[i] = rms_buffer[i + 1];
-        signal_integral = signal_integral + rms_buffer[i];
+        signal_integral = signal_integral - rms_buffer[RMS_handler][buffr_pointr];
     }
-    rms_buffer[BUFFER_SIZE - 1] = signal_fabs;
-    signal_integral = signal_integral + signal_fabs;
+    rms_buffer[RMS_handler][buffr_pointr] = signal_fabs;
+    signal_integral = signal_integral + rms_buffer[RMS_handler][buffr_pointr];
+    buffr_pointr++;
+    if (buffr_pointr == BUFFER_SIZE)
+    {
+        buffr_pointr = 0;
+        buffer_overflow = 1;
+    }
 
 
     return signal_integral * FAST_RMS_COEF;
