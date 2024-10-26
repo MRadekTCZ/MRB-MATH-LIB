@@ -916,7 +916,7 @@ float rapid_RMS(float signal_actual, unsigned int RMS_handler)
     rms_buffer[RMS_handler][buffr_pointr[RMS_handler]] = signal_fabs;
     signal_integral[RMS_handler] = signal_integral[RMS_handler] + rms_buffer[RMS_handler][buffr_pointr[RMS_handler]];
     buffr_pointr[RMS_handler]++;
-    if (buffr_pointr == BUFFER_SIZE)
+    if (buffr_pointr[RMS_handler] == BUFFER_SIZE)
     {
         buffr_pointr[RMS_handler] = 0;
         buffer_overflow[RMS_handler] = 1;
