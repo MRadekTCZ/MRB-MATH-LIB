@@ -5,11 +5,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 // Define constants
 #define PI 3.14159265358979323846
-#define FFT_ACCURACY 1
-#define MAX_SAMPLES ((unsigned int)(200*FFT_ACCURACY))// Maximum number of samples
-#define MAX_FREQ_RANGE ((unsigned int)(8*FFT_ACCURACY)) // Reduced frequency range for DFT
-#define FFT_HANDLERS 3
+#define DFT_HANDLERS 3
+#define SAMPLING_FREQ 10000
+#define BASE_FREQ 50
+#define MAX_HARMONIC 8
+#define DFT_BUFFER_SIZE ((unsigned int)(SAMPLING_FREQ/BASE_FREQ))// Maximum number of samples
+#define MAX_FREQ_RANGE ((unsigned int)(MAX_HARMONIC*(SAMPLING_FREQ/BASE_FREQ)*0.005)) // Reduced frequency range for DFT
 
+#define DFT_ACCURACY ((unsigned int)((SAMPLING_FREQ/BASE_FREQ)*0.005))
 // Function to generate a sine wave with additional frequencies
 float generate_sine_wave(float f, float t) {
     float y;
@@ -22,27 +25,27 @@ float generate_sine_wave(float f, float t) {
 }
 
 // Function to compute the Discrete Fourier Transform (DFT)
-void compute_dft(float y, float* P1, unsigned int FFT_Handler) {
+void DFT(float y, float* P1, unsigned int DFT_Handler) {
     float real, imag;
-    static float input_buffer[FFT_HANDLERS][MAX_SAMPLES];
-    static unsigned short int buffer_overflow[FFT_HANDLERS];
-    static int buffr_pointr[FFT_HANDLERS];
-    input_buffer[FFT_Handler][buffr_pointr[FFT_Handler]] = y;
-    buffr_pointr[FFT_Handler]++;
+    static float input_buffer[DFT_HANDLERS][DFT_BUFFER_SIZE];
+    static unsigned short int buffer_overflow[DFT_HANDLERS];
+    static int buffr_pointr[DFT_HANDLERS];
+    input_buffer[DFT_Handler][buffr_pointr[DFT_Handler]] = y;
+    buffr_pointr[DFT_Handler]++;
 
-    if (buffr_pointr[FFT_Handler] == MAX_SAMPLES)
+    if (buffr_pointr[DFT_Handler] == DFT_BUFFER_SIZE)
     {
-        buffr_pointr[FFT_Handler] = 0;
+        buffr_pointr[DFT_Handler] = 0;
         for (int k = 0; k < MAX_FREQ_RANGE; k++) {
             real = 0;
             imag = 0;
-            for (int n = 0; n < MAX_SAMPLES; n++) {
-                float angle = -2.0 * PI * k * n / MAX_SAMPLES;
-                real += input_buffer[FFT_Handler][n] * cosf(angle);
-                imag += input_buffer[FFT_Handler][n] * sinf(angle);
+            for (int n = 0; n < DFT_BUFFER_SIZE; n++) {
+                float angle = -2.0 * PI * k * n / DFT_BUFFER_SIZE;
+                real += input_buffer[DFT_Handler][n] * cosf(angle);
+                imag += input_buffer[DFT_Handler][n] * sinf(angle);
             }
             // Compute the magnitude of the DFT result
-            P1[k] = 2.0 * sqrtf(real * real + imag * imag) / MAX_SAMPLES;
+            P1[k] = 2.0 * sqrtf(real * real + imag * imag) / DFT_BUFFER_SIZE;
         }
     }
 }
@@ -56,22 +59,22 @@ int main() {
     // Define fixed-size arrays for time and signal data
     float t;
     float y;
-    float P1[MAX_SAMPLES / 2 + 1];
+    float P1[DFT_BUFFER_SIZE / 2 + 1];
 
 
 
-    for (int i = 0; i < 2*MAX_SAMPLES; i++) {
+    for (int i = 0; i < 2*DFT_BUFFER_SIZE; i++) {
         float t = i * 0.0001;
         float y = generate_sine_wave(f, t);
         //printf("     %f     ", y);
         // Compute DFT
-        compute_dft(y, P1, 1);
+        DFT(y, P1, 1);
     }
     
 
     float main_frequency = 50.0;
     printf("Main Frequency: %f Hz\n", main_frequency);
-    printf("Amplitude of Main Frequency: %f\n", P1[1*FFT_ACCURACY]);
+    printf("Amplitude of Main Frequency: %f\n", P1[1*DFT_ACCURACY]);
     // Print all values in P1
     printf("\nP1 values:\n");
     for (int i = 0; i < MAX_FREQ_RANGE; i++) {
@@ -96,21 +99,21 @@ int main() {
     fclose(file);
     printf("P1 values written to P1_values.csv\n");
 
-
+    
     LARGE_INTEGER frequency;
     LARGE_INTEGER start, end;
-    float times[2 * MAX_SAMPLES];  // Array to store cycle times in milliseconds
+    float times[2 * DFT_BUFFER_SIZE];  // Array to store cycle times in milliseconds
     // Get the high-resolution performance frequency
     QueryPerformanceFrequency(&frequency);
 
-    for (int i = 0; i < 2 * MAX_SAMPLES; i++) {
+    for (int i = 0; i < 2 * DFT_BUFFER_SIZE; i++) {
         QueryPerformanceCounter(&start);  // Start time
 
         float t = i * 0.0001f;
         float y = generate_sine_wave(f, t);
 
         // Compute DFT
-        compute_dft(y, P1, 1);
+        DFT(y, P1, 1);
 
         QueryPerformanceCounter(&end);  // End time
 
@@ -119,9 +122,9 @@ int main() {
     }
 
     // Print all cycle times
-    for (int i = 0; i < 2 * MAX_SAMPLES; i++) {
+    for (int i = 0; i < 2 * DFT_BUFFER_SIZE; i++) {
         printf("Cycle %d: %f ms\n", i, times[i]);
     }
-
+    
     return 0;
 }
