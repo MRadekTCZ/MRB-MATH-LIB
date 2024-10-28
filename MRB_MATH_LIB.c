@@ -890,7 +890,36 @@ float rapid_RMS(float signal_actual, unsigned int RMS_handler)
     return signal_integral[RMS_handler] * FAST_RMS_COEF;
 
 }
+#ifndef NO_FPU
+//Discrete Fourier transform
+void DFT(float y, float* P1, unsigned int DFT_Handler) {
+    float real, imag;
+    static float input_buffer[DFT_HANDLERS][DFT_BUFFER_SIZE];
+    static int buffr_pointr[DFT_HANDLERS];
+    float const static ONE_BY_BUFFERSIZE = 1.0f / DFT_BUFFER_SIZE;
+    input_buffer[DFT_Handler][buffr_pointr[DFT_Handler]] = y;
+    buffr_pointr[DFT_Handler]++;
+    // Calculation will be done only if buffer is full
+    if (buffr_pointr[DFT_Handler] == DFT_BUFFER_SIZE)
+    {
+        buffr_pointr[DFT_Handler] = 0;
+        int k = 0;
+        for (k = 0; k < MAX_FREQ_RANGE; k++) {
+            real = 0;
+            imag = 0;
+            int n = 0;
+            for (n = 0; n < DFT_BUFFER_SIZE; n++) {
+                float angle = -2.0 * PI * k * n * ONE_BY_BUFFERSIZE;
+                real += input_buffer[DFT_Handler][n] * cosf(angle);
+                imag += input_buffer[DFT_Handler][n] * sinf(angle);
+            }
+            // Compute the magnitude of the DFT result
+            P1[k] = 2.0 * fast_sqrt(real * real + imag * imag) * ONE_BY_BUFFERSIZE;
+        }
+    }
+}
 
+#else
 //Discrete Fourier transform
 void DFT(float y, float* P1, unsigned int DFT_Handler) {
     float real, imag;
@@ -918,9 +947,7 @@ void DFT(float y, float* P1, unsigned int DFT_Handler) {
         }
     }
 }
-
-
-
+#endif // NO_FPU
 
 
 

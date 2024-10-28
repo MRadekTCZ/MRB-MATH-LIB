@@ -38,6 +38,7 @@
 #define DFT_BASE_FREQ 50
 #define MAX_HARMONIC 8
 #define DFT_RESULUTION 10
+//#define NO_FPU
 //*******don't change anything from here*************************//
 //*******don't change anything from here*************************//
 //*******don't change anything from here*************************//
