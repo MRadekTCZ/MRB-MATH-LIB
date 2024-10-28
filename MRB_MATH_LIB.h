@@ -15,26 +15,29 @@
 //***********ADJUSTABLE PARAMETERS**************************//
 
 // ***********RMS*******************************************//
-//For proper RMS calculation, you have to adjust 
+//For proper RMS calculation, you have to adjust these parameters
+#define RMS_HANDLERS 6
 #define MEASURING_FREQUENCY 10000
 #define BASE_FREQ 50
 #define BUFFER_SIZE 200 // (MEASURING_FREQUENCY / BASE_FREQ)
-#define RMS_HANDLERS 6
 //Buffer size has be counted manually before compilation, so there will be no need of using malloc()
 
 // ***********SQRT******************************************//
 // fast qrt accuracy is directly connected with number of cycles needed to count it
 // increasing sqrt_accuracy by one effects linearly increasing execution time of fast_sqrt
-#define SQRT_ACCURACY 2
+#define SQRT_ACCURACY 3
 
 // ***********SIN and COS***********************************//
 //You can define lenght of look up table (in kB). The bigger the look up table, the more accurate sin_f and cos_f function are
 #define LUTSIZE 1 //4*kB
 
-
-
-
-
+// ***********DISCRETE FOURIER TRANSFORM********************//
+//For proper DFT calculation, you have to adjust these parameters
+#define DFT_HANDLERS 1
+#define SAMPLING_FREQ 10000
+#define DFT_BASE_FREQ 50
+#define MAX_HARMONIC 8
+#define DFT_RESULUTION 10
 //*******don't change anything from here*************************//
 //*******don't change anything from here*************************//
 //*******don't change anything from here*************************//
@@ -50,9 +53,11 @@
 #define PI_BY_2 1.57079632679489661923f   // Pi / 2
 #define PI_BY_3 1.04719755119659774615f   // Pi / 3
 #define ONE_BY_2PI 0.15915494309189533576f // 1 / (2 * Pi)
+
 #define FAST_RMS_COEF 1.1098901f
 
-
+#define DFT_BUFFER_SIZE ((unsigned int)((SAMPLING_FREQ*DFT_RESULUTION)/DFT_BASE_FREQ))// Maximum number of samples
+#define MAX_FREQ_RANGE ((unsigned int)(MAX_HARMONIC*DFT_RESULUTION)) // Reduced frequency range for DFT
 
 
 //*************************************************************************
@@ -69,14 +74,13 @@
 float sin_f(float arg);
 float cos_f(float arg);
 
-
 float fast_invsqrt(float number);
 float fast_sqrt(float number);
-
 
 float RMS(float signal_actual, unsigned int RMS_handler);
 float fast_RMS(float signal_actual, unsigned int RMS_handler);
 float rapid_RMS(float signal_actual, unsigned int RMS_handler);
 
+void DFT(float y, float* P1, unsigned int DFT_Handler);
 
 #endif /* INC_MRB_TRIGONOMETRIC_LIB_H_ */
