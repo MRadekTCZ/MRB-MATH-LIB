@@ -16,7 +16,7 @@ Functions included in the library
 •	RMS(float x)	root mean square function (with normal sqrt function)
 •	fast_RMS(float x)    fast root mean square function (with fast sqrt function)
 •	rapid_RMS(float x)   rapid root mean square function (approach without sqrt)
-
+•	DFT(float x)   discrete Fourier transform
 for more information read documentation
 
 
