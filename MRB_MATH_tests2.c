@@ -25,7 +25,7 @@ void compare_sin(double step) {
 
     for (double x = -PI; x <= 3 * PI; x += step) {
         float sin_math = sin(x);  // Result from math.h
-        float sin_mine = sin_f(x); // Result from sin_f
+        float sin_mine = sin_t(x); // Result from sin_f
         float difference = fabs(sin_math - sin_mine);
 
         // Print to console
@@ -55,7 +55,7 @@ void compare_cos(double step) {
 
     for (double x = -PI; x <= 3 * PI; x += step) {
         float cos_math = cos(x);  // Result from math.h
-        float cos_mine = cos_f(x); // Result from cos_f
+        float cos_mine = cos_t(x); // Result from cos_f
         float difference = fabs(cos_math - cos_mine);
 
         // Print to console
@@ -164,6 +164,20 @@ void compare_RMS(float* array, int number_of_samples) {
         printf("  %10.9f | %10.9f | %10.9f  | %10.9f\n", current[0], current[1], current[2], voltage[0]);
     }
 }
+float generate_sine_wave(float f, float t) {
+    float y;
+    y = cos_f(2 * PI * f * t);
+    y += 0.05 * sinf(2.0 * PI * (1.1 * f) * t);
+    y += 0.05 * sinf(2.0 * PI * (1.2 * f) * t);
+    y += 0.015 * sinf(2.0 * PI * (1.5 * f) * t);
+    y += 0.05 * sinf(2.0 * PI * (1.6 * f) * t);
+    y += 0.05 * sinf(2.0 * PI * (1.8 * f) * t);
+    y += 0.02 * sinf(2.0 * PI * (2.0 * f) * t);
+    y += 0.03 * sinf(2.0 * PI * (3.0 * f) * t);
+    y += 0.05 * sinf(2.0 * PI * (5.0 * f) * t);
+    y += 0.07 * sinf(2.0 * PI * (7.0 * f) * t);
+    return y;
+}
 
 int main() {
 
@@ -172,18 +186,70 @@ int main() {
     int number_of_samples = 200;
     float amplitude = 330.0;          // Amplitude of the sine wave
     float sine_array[200];            // Array to hold sine values
-    //compare_sin(step);
+    compare_sin(step);
+    //compare_cos(step);
     //compare_sqrt();
-    generate_sine(sine_array, number_of_samples, amplitude);
+    //generate_sine(sine_array, number_of_samples, amplitude);
 
     //printf("Array of sine wave values:\n");
     //for (int i = 0; i < number_of_samples; i++) {
     //    printf("sine_array[%d] = %8.6f\n", i, sine_array[i]);
     //}
 
-    compare_RMS(sine_array, number_of_samples);
+    //compare_RMS(sine_array, number_of_samples);
+    // Define signal parameters
+    float f = 50.0;  // Main frequency in Hz
+    /*
+
+    // Define fixed-size arrays for time and signal data
+    float t;
+    float y;
+    float P1[DFT_BUFFER_SIZE / 2 + 1];
+    float P2[DFT_BUFFER_SIZE / 2 + 1];
+
+    for (int i = 0; i < 2 * DFT_BUFFER_SIZE; i++) {
+        float t = i * (1.0f/SAMPLING_FREQ);
+        float y = generate_sine_wave(f, t);
+        //printf("%f\n", y);
+        //float y2 = generate_sine_wave(2*f, t);
+        DFT(y, P1, 0);
+        //DFT(y2, P2, 1);
+    }
 
 
+    float main_frequency = f;
+    printf("Main Frequency: %f Hz\n", main_frequency);
+    printf("Amplitude of Main Frequency: %f\n", P1[1 * DFT_RESULUTION]);
+    // Print all values in P1
+    printf("\nP1 values:\n");
+    for (int i = 0; i < MAX_FREQ_RANGE; i++) {
+        printf("Frequency bin %d: Amplitude = %f\n", i, P1[i]);
+    }
+    
+    printf("\n");
+
+    
+
+
+    // Write P1 values to a CSV file using fopen_s
+    FILE* file;
+    errno_t err = fopen_s(&file, "P1_values.csv", "w");
+    if (err != 0 || file == NULL) {
+        printf("Error opening file!\n");
+        return 1;
+    }
+
+    // Write header
+    fprintf(file, "Frequency Bin,Amplitude\n");
+
+    // Write values
+    for (int i = 0; i < MAX_FREQ_RANGE; i++) {
+        fprintf(file, "%d,%f\n", i, P1[i]);
+    }
+
+    fclose(file);
+    printf("P1 values written to P2_values.csv\n");
+    */
     return 0;
 }
 

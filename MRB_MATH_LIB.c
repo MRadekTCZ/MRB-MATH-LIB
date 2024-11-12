@@ -617,8 +617,8 @@ const float MRB_TL_SINUS_LOOKUP[LUT_LENGTH] =
 
 };
 
-#else  
-#define LUT_LENGTH 1000
+#elif LUTSIZE == 1
+#define LUT_LENGTH 4000 
 const float MRB_TL_SINUS_LOOKUP[LUT_LENGTH] =
 {
     0.000000, 0.001572, 0.003145, 0.004717, 0.006289, 0.007862, 0.009434, 0.011006, 0.012579, 0.014151,
@@ -723,6 +723,12 @@ const float MRB_TL_SINUS_LOOKUP[LUT_LENGTH] =
     0.999900, 0.999921, 0.999939, 0.999955, 0.999969, 0.999980, 0.999989, 0.999995, 0.999999, 1.000000
 
 };
+#else
+//Placeholder for no LUT
+const float MRB_TL_SINUS_LOOKUP[LUT_LENGTH] =
+{
+    0.000000,1.000000
+};
 #endif
 //**********************************
 
@@ -770,13 +776,40 @@ float sin_f(float arg)
     }
     else return 0x0;
 };
+
 float cos_f(float arg)
 {
     float result_value = 0;
-    unsigned int arg_conversion_to_decimal = 0;
     arg = arg + PI_BY_2;
     result_value = sin_f(arg);
     
+    return result_value;
+};
+
+
+//Sinus made with Taylor series
+float sin_t(float arg)
+{
+    float result_value = 0;
+    float x;
+
+    if (arg < -PI)
+    {
+        while (arg < -PI) { arg = arg + 2 * PI; }
+    }
+    else if (arg >= PI)
+    {
+        while (arg >= PI) { arg = arg - 2 * PI; }
+    }
+    x = arg * arg;
+    result_value = arg * (1 - x * F3 * (1 - x * F5 * (1 - x * F7 * (1 - x * F9))));
+}
+float cos_t(float arg)
+{
+    float result_value = 0;
+    arg = arg + PI_BY_2;
+    result_value = sin_t(arg);
+
     return result_value;
 };
 
@@ -890,7 +923,36 @@ float rapid_RMS(float signal_actual, unsigned int RMS_handler)
     return signal_integral[RMS_handler] * FAST_RMS_COEF;
 
 }
+#ifndef NO_FPU
+//Discrete Fourier transform
+void DFT(float y, float* P1, unsigned int DFT_Handler) {
+    float real, imag;
+    static float input_buffer[DFT_HANDLERS][DFT_BUFFER_SIZE];
+    static int buffr_pointr[DFT_HANDLERS];
+    float const static ONE_BY_BUFFERSIZE = 1.0f / DFT_BUFFER_SIZE;
+    input_buffer[DFT_Handler][buffr_pointr[DFT_Handler]] = y;
+    buffr_pointr[DFT_Handler]++;
+    // Calculation will be done only if buffer is full
+    if (buffr_pointr[DFT_Handler] == DFT_BUFFER_SIZE)
+    {
+        buffr_pointr[DFT_Handler] = 0;
+        int k = 0;
+        for (k = 0; k < MAX_FREQ_RANGE; k++) {
+            real = 0;
+            imag = 0;
+            int n = 0;
+            for (n = 0; n < DFT_BUFFER_SIZE; n++) {
+                float angle = -2.0 * PI * k * n * ONE_BY_BUFFERSIZE;
+                real += input_buffer[DFT_Handler][n] * cosf(angle);
+                imag += input_buffer[DFT_Handler][n] * sinf(angle);
+            }
+            // Compute the magnitude of the DFT result
+            P1[k] = 2.0 * fast_sqrt(real * real + imag * imag) * ONE_BY_BUFFERSIZE;
+        }
+    }
+}
 
+#else
 //Discrete Fourier transform
 void DFT(float y, float* P1, unsigned int DFT_Handler) {
     float real, imag;
@@ -918,9 +980,7 @@ void DFT(float y, float* P1, unsigned int DFT_Handler) {
         }
     }
 }
-
-
-
+#endif // NO_FPU
 
 
 

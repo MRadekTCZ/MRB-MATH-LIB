@@ -365,3 +365,80 @@ for i = 1:length(THD)
     text(THD(i), Relative_Error(i),THD(i), ...
          'HorizontalAlignment', 'center');
 end
+
+%% DFT
+% Define file names
+files = {'P1_values.csv', 'P2_values.csv', 'P3_values.csv', 'P4_values.csv'};
+
+% Initialize cell arrays to store frequency bins and amplitudes for each file
+frequencies = cell(1, 4);
+amplitudes = cell(1, 4);
+
+% Factors for dividing frequency bins for each file
+divisors = [1, 2, 5, 10];
+
+% Loop through each file and read the data
+for i = 1:length(files)
+    % Read the CSV file
+    data = readtable(files{i});
+    
+    % Display variable names for troubleshooting
+    disp(['Variable names in ', files{i}, ':']);
+    disp(data.Properties.VariableNames);
+    
+    % Extract data columns based on variable names
+    freqColName = data.Properties.VariableNames{1}; % First column name
+    ampColName = data.Properties.VariableNames{2}; % Second column name
+    
+    % Apply divisor to frequency column and store
+    frequencies{i} = data.(freqColName) / divisors(i);
+    amplitudes{i} = data.(ampColName);
+end
+
+% Plot the data
+figure;
+hold on;
+colors = {'r', 'g', 'b', 'k'}; % Colors for each line
+labels = {'1n', '0.5n', '0.2n', '0.1n'}; % Labels for legend
+
+for i = 1:length(files)
+    plot(frequencies{i}, amplitudes{i}, 'Color', colors{i}, 'DisplayName', labels{i}, 'LineWidth', 2);
+end
+
+% Add labels and title
+xlabel('Frequency Bin');
+ylabel('Amplitude');
+title('Amplitude vs DFT resolution 1, 2, 5, and 10');
+legend;
+grid on;
+hold off;
+
+%% Taylor
+% Define the range of x from -pi to pi
+x = linspace(-pi, pi, 1000);
+
+% Calculate the true sine values
+y_sin = sin(x);
+
+% Calculate the Taylor series approximation up to the x^9/9! term
+y_taylor = x - (x.^3 / factorial(3)) + (x.^5 / factorial(5)) ...
+           - (x.^7 / factorial(7)) + (x.^9 / factorial(9));
+
+% Plot both functions
+figure;
+plot(x, y_sin, 'b-', 'LineWidth', 1.5); hold on;
+plot(x, y_taylor, 'r--', 'LineWidth', 1.5);
+
+% Add labels and title
+xlabel('x (radians)');
+ylabel('Value');
+title('Comparison of sin(x) and Taylor Series Approximation');
+
+% Add legend
+legend('sin(x)', 'Taylor Series Approximation', 'Location', 'Best');
+
+% Show grid for better visualization
+grid on;
+
+% Release hold on the plot
+hold off;
