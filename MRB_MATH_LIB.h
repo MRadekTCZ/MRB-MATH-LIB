@@ -29,7 +29,7 @@
 
 // ***********SIN and COS***********************************//
 //You can define lenght of look up table (in kB). The bigger the look up table, the more accurate sin_f and cos_f function are
-#define LUTSIZE 1 //4*kB
+#define LUTSIZE 0 //4*kB
 
 // ***********DISCRETE FOURIER TRANSFORM********************//
 //For proper DFT calculation, you have to adjust these parameters
@@ -62,18 +62,27 @@
 
 
 //*************************************************************************
-#if LUTSIZE == 2
+#if LUTSIZE == 1
+#define LUT_LENGTH 1000 
+#elif LUTSIZE == 2
 #define LUT_LENGTH 2000   
 #elif LUTSIZE == 4
 #define LUT_LENGTH 4000 
 #else  
-#define LUT_LENGTH 1000
+#define LUT_LENGTH 2 
+#define NO_LUT
 #endif
 
-
+#define F3 0.166666666
+#define F5 0.05
+#define F7 0.023809523
+#define F9 0.013888888
 
 float sin_f(float arg);
 float cos_f(float arg);
+
+float sin_t(float arg);
+float cos_t(float arg);
 
 float fast_invsqrt(float number);
 float fast_sqrt(float number);
